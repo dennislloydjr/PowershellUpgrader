@@ -17,34 +17,6 @@ public class FakeRegKey
 }
 '@
 
-
-Describe "New-Path" {
-	Context "When path exists" {
-		New-Item -ItemType directory -Path 'TestDrive:\z' > $null
-		Mock New-Item {}
-		
-		$result = New-Path -path 'TestDrive:\z'
-		
-		It "should not create path" {
-			Assert-MockCalled New-Item -Times 0
-		}
-		It "should return null" {
-			$result | Should Be $null
-		}
-	}
-
-	Context "When path does not exist" {
-		$result = New-Path -path 'TestDrive:\z'
-		
-		It "should create path" {
-			Test-Path 'TestDrive:\z' | Should Be True
-		}
-		It "should return path" {
-			$result | Should Be (Convert-Path 'TestDrive:\z')
-		}
-	}
-}
-
 Describe "Request-Download" {
 	Context "When file not found" {
 		$sourcePath = (New-Item 'TestDrive:/source.txt' -type file -Force).DirectoryName + '/DoesNotExist.txt'
@@ -97,7 +69,6 @@ Describe 'Get-DotNetVersion' {
 }
 
 Describe 'Install-DotNet' {
-	Mock New-Path {return $path}
 	Mock Request-Download {}
 	Mock Start-Process {}
 	

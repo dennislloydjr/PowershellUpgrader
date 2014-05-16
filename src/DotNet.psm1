@@ -10,18 +10,6 @@ function Resolve-Error ($ErrorRecord=$Error[0])
    throw $Exception
 }
 
-function New-Path {
-	param(
-		[Parameter(Mandatory=$True,
-				   ValueFromPipeline=$True,
-				   ValueFromPipelineByPropertyName=$True)]
-		[string]$path
-	)
-	if (!(Test-Path -Path $path)) {
-		New-Item -ItemType directory -Path $path
-	}
-}
-
 function Request-Download {
 	param(
 		[Parameter(Mandatory=$True,
@@ -64,5 +52,7 @@ function Install-DotNet {
 	Start-Process -FilePath $targetPath -ArgumentList '/q /norestart' -Wait -Verb 'RunAs'
 }
 
+Export-ModuleMember 'Resolve-Error'
+Export-ModuleMember 'Request-Download'
 Export-ModuleMember 'Get-DotNetVersion'
 Export-ModuleMember 'Install-DotNet'
