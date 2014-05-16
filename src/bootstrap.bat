@@ -12,6 +12,12 @@ if %errorLevel% neq 0 (
 :powershell_settings
 powershell Set-ExecutionPolicy unrestricted
 
+:set_environment
+powershell -noprofile .\SetEnvironmentVariables.ps1
+if %errorlevel% neq 0 (
+	exit /b 1
+)
+
 :dotnet_and_poweshell_upgrade
 powershell -noprofile .\BootstrapProvisioning.ps1
 if exist *.msu (

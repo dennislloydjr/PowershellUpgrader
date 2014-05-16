@@ -17,6 +17,69 @@ public class FakeRegKey
 }
 '@
 
+
+Describe "New-Path" {
+	Context "When path exists" {
+		New-Item -ItemType directory -Path 'TestDrive:\z' > $null
+		Mock New-Item {}
+		
+		$result = New-Path -path 'TestDrive:\z'
+		
+		It "should not create path" {
+			Assert-MockCalled New-Item -Times 0
+		}
+		It "should return null" {
+			$result | Should Be $null
+		}
+	}
+
+	Context "When path does not exist" {
+		$result = New-Path -path 'TestDrive:\z'
+		
+		It "should create path" {
+			Test-Path 'TestDrive:\z' | Should Be True
+		}
+		It "should return path" {
+			$result | Should Be (Convert-Path 'TestDrive:\z')
+		}
+	}
+}
+
+Describe "Request-Download" {
+	Context "When file not found" {
+		$sourcePath = (New-Item 'TestDrive:/source.txt' -type file -Force).DirectoryName + '/DoesNotExist.txt'
+		$targetPath = (New-Item 'TestDrive:/target.txt' -type file -Force).DirectoryName + '/target.txt'
+		$execptionThrown = $False
+		
+		try {
+			Request-Download -Source $sourcePath -Destination $targetPath > $null
+		} catch {
+			$exceptionThrown = $True
+		}
+
+		It "should not create target" {
+			Test-Path 'C:/target.txt' | Should Be $False
+		}
+		
+		It "should throw an exception" {
+			$exceptionThrown | Should Be $True
+		}
+	}
+	Context "When file exits" {
+		$sourcePath = (New-Item 'TestDrive:/source.txt' -type file -Force).DirectoryName + '/source.txt'
+		$targetPath = (New-Item 'TestDrive:/target.txt' -type file -Force).DirectoryName + '/target.txt'
+		$contents = 'This is my text.'
+		
+		Add-Content -Path $sourcePath $contents
+	
+		Request-Download $sourcePath $targetPath
+		
+		It "should download" {
+			Get-Content $targetPath | Should Be $contents
+		}
+	}
+}
+
 Describe 'Get-DotNetVersion' {
 	Context 'When Multiple Versions' {
 		Mock Get-ChildItem {return @('path1';'path2';'path3')}
@@ -37,14 +100,11 @@ Describe 'Install-DotNet' {
 	Mock New-Path {return $path}
 	Mock Request-Download {}
 	Mock Start-Process {}
-	Mock Get-DataPath {return 'TestDrive:\z\data'}
-	Mock Install-MsiFromUrl
 	
 	Install-DotNet -source 'source-path'
 	
 	It 'Downloads and installs .Net from URL' {
-		Assert-MockCalled New-Path -ParamterFilter {$path -eq 'TestDrive:\z\data\provisioning\installs\'}
-		Assert-MockCalled Request-Download -ParameterFilter {$source -eq 'source-path' -and $destination -eq 'TestDrive:\z\data\provisioning\installs\DotNet.exe'}
-		Assert-MockCalled Start-Process -ParameterFilter {$filePath -eq 'TestDrive:\z\data\provisioning\installs\DotNet.exe' -and $argumentList -eq '/q /norestart' -and $wait -eq $True -and $verb -eq 'RunAs'}
+		Assert-MockCalled Request-Download -ParameterFilter {$source -eq 'source-path' -and $destination -eq 'DotNet.exe'}
+		Assert-MockCalled Start-Process -ParameterFilter {$filePath -eq 'DotNet.exe' -and $argumentList -eq '/q /norestart' -and $wait -eq $True -and $verb -eq 'RunAs'}
 	}
 }

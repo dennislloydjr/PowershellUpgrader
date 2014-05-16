@@ -1,6 +1,3 @@
-Import-Module .\Provisioning.psm1
-Import-Module .\DotNet.psm1
-
 # .Net Framework Version 4.5
 if ((Get-DotNetVersion) -lt '4.5') {
 	Write-Host 'Installing .Net Version 4.5'
