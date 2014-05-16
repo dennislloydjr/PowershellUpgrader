@@ -1,0 +1,1 @@
+cmd /c ..\packages\psake-4.3.0\psake.cmd .\build.psake.ps1
